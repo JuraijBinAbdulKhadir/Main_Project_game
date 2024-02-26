@@ -37,8 +37,7 @@ class _BoardState extends State<Board> {
   void _initializeBoard(){
     late List<List<ChessPiece?>> newBoard=List.generate(8, (index) => List.generate(8,(index) => null,));
 
-    //place random
-    newBoard[3][3]=ChessPiece(type: ChessPieceType.king, w: false, imgpath:'lib/images/king.png' );
+
 
     //place pawns..
     for(int i = 0;i<8;i++){
@@ -81,12 +80,14 @@ class _BoardState extends State<Board> {
 //USR SELECT PIECE
   void pieceSelected(int row,int col){
     setState(() {
-      //No piece has been selected....
-      if(selectedPiece != null && board[row][col] != null){
-        selectedPiece=board[row][col];
-        selectedRow=row;
-        selectedCol=col;
-      }
+
+
+      // //No piece has been selected....
+       if(selectedPiece == null && board[row][col] != null){
+         selectedPiece=board[row][col];
+         selectedRow=row;
+         selectedCol=col;
+       }
 
       //there is a piece already selected,but usr can select another piece..
 
@@ -95,15 +96,9 @@ class _BoardState extends State<Board> {
         selectedRow=row;
         selectedCol=col;
       }
-
-
-
       //if piece selected and usr taps another..
-
-
       else if(selectedPiece != null && validMoves.any((element) => element[0]==row && element[1]==col )){
         movePiece(row, col);
-
       }
       //if piece selected calc valid moves..
       validMoves=calculateRawValidMoves(selectedRow,selectedCol,selectedPiece);
@@ -119,7 +114,7 @@ class _BoardState extends State<Board> {
 
 
    //direction..
-    int direction=piece!.w?-1:1;
+    int direction=piece.w?-1:1;
 
     switch(piece.type){
       case ChessPieceType.pawn:
