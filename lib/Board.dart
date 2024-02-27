@@ -370,7 +370,7 @@ class _BoardState extends State<Board> {
       validMoves=[];
     });
     //check if its checkmate..
-    if(isCheckMate(isWhiteTurn)){
+    if(isCheckMate(!isWhiteTurn)){
       showDialog(
         context: context,
         builder: (context)=>AlertDialog(
@@ -385,7 +385,7 @@ class _BoardState extends State<Board> {
     isWhiteTurn=!isWhiteTurn;
   }
   //Is king in check..
-  bool isKingInCheck(bool  isWhiteKing){
+  bool isKingInCheck(bool isWhiteKing){
     //get position of king..
     List<int> kingPosition= isWhiteKing? whiteKingPosition:blackKingPosition;
 
@@ -468,6 +468,15 @@ class _BoardState extends State<Board> {
   void resetGame(){
     Navigator.pop(context);
     _initializeBoard();
+    checkStatus=false;
+    whitePieceTaken.clear();
+    blackPieceTaken.clear();
+    whiteKingPosition=[7,4];
+    blackKingPosition=[0,4];
+    isWhiteTurn=true;
+    setState(() {
+
+    });
   }
 
   @override
