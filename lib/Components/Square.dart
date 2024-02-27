@@ -15,7 +15,7 @@ class Square extends StatelessWidget {
   Widget build(BuildContext context) {
     Color? squareColor;
     if(isSelect){squareColor=Colors.green;}
-    else if(isValidMove){squareColor=Colors.green[300];}
+    else if(isValidMove){squareColor=Colors.green[200];}
     else{squareColor=isWhite? foregroundColor:backgroundColor;}
 
     return GestureDetector(

@@ -119,7 +119,7 @@ class _BoardState extends State<Board> {
         movePiece(row, col);
       }
       //if piece selected calc valid moves..
-      validMoves=calculateRawValidMoves(selectedRow,selectedCol,selectedPiece);
+      validMoves=calculateRealValidMoves(selectedRow,selectedCol,selectedPiece,true);
     });
   }
 
@@ -151,7 +151,7 @@ class _BoardState extends State<Board> {
         }
 
         //kill diagonally..
-        if( isInBoard(row+direction, col-1) && board[row+direction][col-1] != null && board[row+direction][col-1]!.w ){
+        if( isInBoard(row+direction, col-1) && board[row+direction][col-1] != null && board[row+direction][col-1]!.w !=piece.w ){
           candidateMoves.add([row+direction,col-1]);
         }
         if( isInBoard(row+direction, col+1) && board[row+direction][col+1] != null && board[row+direction][col+1]!.w !=piece.w ){
@@ -316,16 +316,40 @@ class _BoardState extends State<Board> {
    return candidateMoves;
   }
 
+  //Calculate real valid moves..
+  List<List<int>> calculateRealValidMoves(int row, int col,ChessPiece? piece,bool checkSim){
+    List<List<int>> realValidMoves=[];
+    List<List<int>> candidateMoves = calculateRawValidMoves(row, col, piece);
+
+    //after generating all valid moves ,filter out king checks..
+    if(checkSim){
+      for(var move in candidateMoves){
+        int endRow=move[0];
+        int endCol=move[1];
+        //simulate future move check safe..
+        if(simulatedMoveIsSafe(piece!,row,col,endRow,endCol)){realValidMoves.add(move);}
+      }
+    }else{realValidMoves=candidateMoves;}
+    return realValidMoves;
+  }
+
   //MOVE PIECES
   void movePiece(int newRow,int newCol){
     //if new spot has enemy piece
     if(board[newRow][newCol] != null){
+      //add captured piece to correct list
       var capturedPiece = board[newRow][newCol];
       if(capturedPiece!.w){
         whitePieceTaken.add(capturedPiece);
       }
       else{blackPieceTaken.add(capturedPiece);}
     }
+
+    //check if the piece being moved is a king..
+    if(selectedPiece!.type == ChessPieceType.king){
+      //correct king position update..
+      whiteKingPosition=[newRow,newCol];
+    }else{blackKingPosition=[newRow,newCol];}
 
     //MOVE AND CLEAR OLD
     board[newRow][newCol]=selectedPiece;
@@ -367,6 +391,42 @@ class _BoardState extends State<Board> {
     }
     return false;
   }
+  //Simulate future move to see if its safe...(Saves king)
+  bool simulatedMoveIsSafe(ChessPiece piece,int startRow,int startCol,int endRow,int endCol){
+
+    //save current board state..
+    ChessPiece? originalDestPiece = board[endRow][endCol];
+
+    //if its king save current pos and update new pos...
+    List<int>? originalKingPosition;
+    if(piece.type==ChessPieceType.king){
+      originalKingPosition = piece.w?whiteKingPosition:blackKingPosition;
+      if(piece.w){  whiteKingPosition=[endRow,endCol]; }
+      else{  blackKingPosition=[endRow,endCol];  }
+    }
+
+
+    //simulate move..
+    board[endRow][endCol]=piece;
+    board[startRow][startCol]=null;
+
+    //check if our king is at attack..
+    bool kingInCheck= isKingInCheck(piece.w);
+
+    //restore board to original..
+    board[startRow][startCol]=piece;
+    board[endRow][endCol]=originalDestPiece;
+
+    //if its king restore it to original pos...
+    if(piece.type==ChessPieceType.king){
+      if(piece.w){  whiteKingPosition=originalKingPosition!;  }
+      else{  blackKingPosition=originalKingPosition!;  }
+    }
+    //if king is in check(true),not safe to move..
+    return !kingInCheck;
+
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -387,7 +447,7 @@ class _BoardState extends State<Board> {
                     gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
                     itemBuilder: (context,index)=>DeadPiece( imagePath: whitePieceTaken[index].imgpath,isWhite: true, )) ),
             //GAME STATUS
-            Text(checkStatus?"CHECK!":"",style: TextStyle(fontWeight: FontWeight.w900,fontSize:18),),SizedBox(height: 10,),
+            Text(checkStatus?"CHECK!":"",style: const TextStyle(fontWeight: FontWeight.w900,fontSize:18),),const SizedBox(height: 10,),
             
             //CHESS BOARD
             Expanded(
