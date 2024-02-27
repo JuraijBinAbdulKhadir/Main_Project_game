@@ -369,6 +369,19 @@ class _BoardState extends State<Board> {
       selectedCol=-1;
       validMoves=[];
     });
+    //check if its checkmate..
+    if(isCheckMate(isWhiteTurn)){
+      showDialog(
+        context: context,
+        builder: (context)=>AlertDialog(
+            title: const Text("CHECKMATE!!"),
+          actions: [
+            //play again
+            TextButton(onPressed:resetGame , child:const Text("play again!") )
+          ],       ) );
+    }
+
+    //change turns..
     isWhiteTurn=!isWhiteTurn;
   }
   //Is king in check..
@@ -383,7 +396,7 @@ class _BoardState extends State<Board> {
 
         if(board[i][j] == null || board[i][j]!.w == isWhiteKing){continue;}
 
-        List<List<int>> pieceValidMoves = calculateRawValidMoves(i, j, board[i][j]);
+        List<List<int>> pieceValidMoves = calculateRealValidMoves(i, j, board[i][j],false);
 
         //check if the kings position is in any of these valid moves..
         if(pieceValidMoves.any((move) =>move[0]==kingPosition[0] && move[1]==kingPosition[1] )){return true;}
@@ -426,6 +439,35 @@ class _BoardState extends State<Board> {
     return !kingInCheck;
 
 
+  }
+
+  //IS IT CHECKMATE..
+  bool isCheckMate (bool isWhiteKing){
+    //if  king is not in check,then no checkmate..
+    if(!isKingInCheck(isWhiteKing)){ return false; }
+
+    //if there is at least 1 legal move,  then no checkmate..
+
+    for(int i=0;i<8;i++){
+      for(int j=0;j<8;j++){
+
+        //skip empty sqr & opp color..
+        if(board[i][j]==null || board[i][j]!.w != isWhiteKing){ continue; }
+        List<List<int>> pieceValidMoves = calculateRealValidMoves(i, j, board[i][j], true);
+        if(pieceValidMoves.isNotEmpty){ return false; }
+      }
+    }
+
+    //if all  conditions are met ,no legal moves,CHECKMATE..
+    return true;
+
+
+  }
+
+  //RESET GAME
+  void resetGame(){
+    Navigator.pop(context);
+    _initializeBoard();
   }
 
   @override
