@@ -38,6 +38,11 @@ class _BoardState extends State<Board> {
   //TURNS  OF GAME
   bool isWhiteTurn=true;
 
+  //Initial positions of kings..
+  List<int> whiteKingPosition = [7,4];
+  List<int> blackKingPosition = [0,4];
+  bool checkStatus =false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -80,11 +85,11 @@ class _BoardState extends State<Board> {
 
     //place Queen..
     newBoard[0][3]=ChessPiece(type: ChessPieceType.queen, w: false, imgpath: 'lib/images/crown.png');
-    newBoard[7][4]=ChessPiece(type: ChessPieceType.queen, w: true, imgpath: 'lib/images/crown.png');
+    newBoard[7][3]=ChessPiece(type: ChessPieceType.queen, w: true, imgpath: 'lib/images/crown.png');
 
     //place King..
     newBoard[0][4]=ChessPiece(type: ChessPieceType.king, w: false, imgpath: 'lib/images/king.png');
-    newBoard[7][3]=ChessPiece(type: ChessPieceType.king, w: true, imgpath: 'lib/images/king.png');
+    newBoard[7][4]=ChessPiece(type: ChessPieceType.king, w: true, imgpath: 'lib/images/king.png');
 
     board=newBoard;
   }
@@ -149,7 +154,7 @@ class _BoardState extends State<Board> {
         if( isInBoard(row+direction, col-1) && board[row+direction][col-1] != null && board[row+direction][col-1]!.w ){
           candidateMoves.add([row+direction,col-1]);
         }
-        if( isInBoard(row+direction, col+1) && board[row+direction][col+1] != null && board[row+direction][col+1]!.w ){
+        if( isInBoard(row+direction, col+1) && board[row+direction][col+1] != null && board[row+direction][col+1]!.w !=piece.w ){
           candidateMoves.add([row+direction,col+1]);
         }
 
@@ -327,6 +332,12 @@ class _BoardState extends State<Board> {
     board[selectedRow][selectedCol]=null;
 
 
+    //if any kings are under attack..
+    if(isKingInCheck(!isWhiteTurn)){
+      checkStatus=true;
+    }else{checkStatus=false;}
+
+
     //CLEAR  SELECTION
     setState(() {
       selectedPiece=null;
@@ -334,6 +345,27 @@ class _BoardState extends State<Board> {
       selectedCol=-1;
       validMoves=[];
     });
+    isWhiteTurn=!isWhiteTurn;
+  }
+  //Is king in check..
+  bool isKingInCheck(bool  isWhiteKing){
+    //get position of king..
+    List<int> kingPosition= isWhiteKing? whiteKingPosition:blackKingPosition;
+
+    //check any enemy piece can attack a king..
+    for(int i=0;i<8;i++){
+      for(int j=0;j<8;j++){
+        //skip thru empty sqr and of same color..
+
+        if(board[i][j] == null || board[i][j]!.w == isWhiteKing){continue;}
+
+        List<List<int>> pieceValidMoves = calculateRawValidMoves(i, j, board[i][j]);
+
+        //check if the kings position is in any of these valid moves..
+        if(pieceValidMoves.any((move) =>move[0]==kingPosition[0] && move[1]==kingPosition[1] )){return true;}
+      }
+    }
+    return false;
   }
 
   @override
@@ -354,6 +386,8 @@ class _BoardState extends State<Board> {
                     itemCount: whitePieceTaken.length,
                     gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
                     itemBuilder: (context,index)=>DeadPiece( imagePath: whitePieceTaken[index].imgpath,isWhite: true, )) ),
+            //GAME STATUS
+            Text(checkStatus?"CHECK!":"",style: TextStyle(fontWeight: FontWeight.w900,fontSize:18),),SizedBox(height: 10,),
             
             //CHESS BOARD
             Expanded(
