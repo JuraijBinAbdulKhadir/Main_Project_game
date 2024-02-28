@@ -1,7 +1,7 @@
-import 'package:chess_one/Home_B.dart';
+import 'package:chess_one/home_b.dart';
 import 'package:flutter/material.dart';
 
-import 'Board.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home:const Hhh(),
+      home: const Hhh(),
     );
   }
 }

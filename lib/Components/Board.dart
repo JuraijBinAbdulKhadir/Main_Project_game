@@ -4,8 +4,8 @@ import 'package:chess_one/Values/Colors.dart';
 
 import 'package:flutter/material.dart';
 
-import 'Components/dead_piece.dart';
-import 'Helper/rc_help.dart';
+import 'dead_piece.dart';
+import '../Helper/rc_help.dart';
 
 
 
